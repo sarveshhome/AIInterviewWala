@@ -1,0 +1,16 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+      "@core/*": ["core/*"],
+      "@features/*": ["features/*"],
+      "@shared/*": ["shared/*"]
+    },
+    "types": ["react-native", "jest"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "__tests__"]
+}

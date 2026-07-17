@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+.gradle/
+build/
+ios/Pods/
+android/app/build/
+coverage/
+*.log
+.DS_Store

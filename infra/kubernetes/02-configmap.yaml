@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aic-config
+  namespace: ai-interview-coach
+data:
+  APP_ENV: "production"
+  APP_PORT: "8000"
+  CORS_ORIGINS: "https://app.aiinterviewcoach.example"
+  MONGODB_DB: "ai_interview_coach"
+  COHERE_MODEL: "command-r-plus"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_DEFAULT: "60/minute"
+  OTEL_SERVICE_NAME: "ai-interview-coach"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://aic-otel:4317"
+  LOG_LEVEL: "INFO"

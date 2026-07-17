@@ -1,0 +1,112 @@
+{
+  "users": {
+    "_id": "string(UUID)",
+    "email": "string (unique)",
+    "full_name": "string",
+    "hashed_password": "string|null",
+    "provider": "email|google|linkedin",
+    "provider_subject": "string|null",
+    "is_active": "bool",
+    "is_verified": "bool",
+    "roles": ["string"],
+    "target_role": "string|null",
+    "experience_years": "int|null",
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "interviews": {
+    "_id": "string(UUID)",
+    "user_id": "string(UUID)",
+    "type": "technical|coding|behavioral|system_design|voice",
+    "technology": "string|null",
+    "status": "pending|in_progress|completed|aborted",
+    "current_question_order": "int",
+    "total_questions_planned": "int",
+    "overall_score": "{value: 0-100}|null",
+    "summary": "string|null",
+    "started_at": "ISODate|null",
+    "completed_at": "ISODate|null",
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "questions": {
+    "_id": "string(UUID)",
+    "interview_id": "string(UUID)",
+    "type": "InterviewType",
+    "topic": "string",
+    "difficulty": "easy|medium|hard",
+    "text": "string",
+    "ideal_answer": "string|null",
+    "order": "int",
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "answers": {
+    "_id": "string(UUID)",
+    "question_id": "string(UUID)",
+    "interview_id": "string(UUID)",
+    "user_id": "string(UUID)",
+    "text": "string",
+    "code": "string|null",
+    "language": "string|null",
+    "duration_seconds": "int",
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "evaluations": {
+    "_id": "string(UUID)",
+    "answer_id": "string(UUID) (unique)",
+    "question_id": "string(UUID)",
+    "feedback": {
+      "score": {"value": "0-100"},
+      "mistakes": ["string"],
+      "ideal_answer": "string|null",
+      "suggested_improvements": ["string"],
+      "follow_up_question": "string|null"
+    },
+    "criteria_scores": {"<criterion>": {"value": "0-100"}},
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "feedback": "embedded inside evaluations.feedback",
+  "analytics": {
+    "_id": "string(UUID)",
+    "user_id": "string(UUID) (unique)",
+    "total_interviews": "int",
+    "average_score": "{value: 0-100}|null",
+    "weak_areas": ["string"],
+    "strong_areas": ["string"],
+    "tech_performance": {"<tech>": "0-100"},
+    "history": [{"id": "string", "type": "string", "technology": "string|null", "score": "number|null"}],
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "resume": {
+    "_id": "string(UUID)",
+    "user_id": "string(UUID)",
+    "file_name": "string",
+    "content_text": "string",
+    "mime_type": "string",
+    "ats_report": {
+      "score": {"value": "0-100"},
+      "missing_skills": ["string"],
+      "strong_areas": ["string"],
+      "weak_areas": ["string"],
+      "recommended_improvements": ["string"]
+    },
+    "extracted_skills": ["string"],
+    "extracted_experience": ["string"],
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  },
+  "learningRoadmap": {
+    "_id": "string(UUID)",
+    "user_id": "string(UUID)",
+    "title": "string",
+    "goal_role": "string",
+    "milestones": [{"title": "string", "topics": ["string"], "resources": ["string"], "est_weeks": "int"}],
+    "est_total_weeks": "int",
+    "created_at": "ISODate",
+    "updated_at": "ISODate"
+  }
+}

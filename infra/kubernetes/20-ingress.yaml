@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aic-ingress
+  namespace: ai-interview-coach
+  annotations:
+    nginx.ingress.kubernetes.io/rate-limit: "60"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts: ["api.aiinterviewcoach.example"]
+      secretName: aic-tls
+  rules:
+    - host: api.aiinterviewcoach.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: aic-api
+                port: { number: 80 }

@@ -1,0 +1,90 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./backend
+    container_name: aic-api
+    env_file: ./backend/.env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks: [aic-net]
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    container_name: aic-worker
+    env_file: ./backend/.env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      - redis
+      - mongo
+    restart: unless-stopped
+    networks: [aic-net]
+
+  mongo:
+    image: mongo:7
+    container_name: aic-mongo
+    environment:
+      - MONGO_INITDB_DATABASE=ai_interview_coach
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks: [aic-net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: aic-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks: [aic-net]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.108.0
+    container_name: aic-otel
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./infra/docker/otel-config.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+    restart: unless-stopped
+    networks: [aic-net]
+
+  mobile:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile.dev
+    profiles: ["mobile"]
+    container_name: aic-mobile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./mobile:/app
+      - /app/node_modules
+    networks: [aic-net]
+
+volumes:
+  mongo-data:
+  redis-data:
+
+networks:
+  aic-net:
+    driver: bridge

@@ -1,0 +1,1 @@
+"""Domain layer — pure business logic. No framework, no IO dependencies."""
