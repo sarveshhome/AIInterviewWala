@@ -4,8 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from config.settings import settings
 from domain.exceptions import InvalidToken, TokenExpired
@@ -17,14 +17,16 @@ class JWTAuthService(IAuthService):
     def __init__(self):
         self._secret = settings.jwt_secret
         self._algo = settings.jwt_algorithm
-        self._pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def hash_password(self, plain: str) -> str:
-        return self._pwd.hash(plain)
+        # bcrypt has a 72-byte password limit. DTOs allow up to 128 chars, so
+        # truncate to 72 bytes (on the UTF-8 encoding) to stay within the limit.
+        # The same truncation is applied in verify_password for consistency.
+        return bcrypt.hashpw(plain.encode("utf-8")[:72], bcrypt.gensalt()).decode("utf-8")
 
     def verify_password(self, plain: str, hashed: str) -> bool:
         try:
-            return self._pwd.verify(plain, hashed)
+            return bcrypt.checkpw(plain.encode("utf-8")[:72], hashed.encode("utf-8"))
         except Exception:  # noqa: BLE001
             return False
 

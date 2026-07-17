@@ -4,13 +4,30 @@
     "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"],
-      "@core/*": ["core/*"],
-      "@features/*": ["features/*"],
-      "@shared/*": ["shared/*"]
+      "@/*": [
+        "*"
+      ],
+      "@core/*": [
+        "core/*"
+      ],
+      "@features/*": [
+        "features/*"
+      ],
+      "@shared/*": [
+        "shared/*"
+      ]
     },
-    "types": ["react-native", "jest"]
+    "types": [
+      "react-native",
+      "jest"
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "__tests__"]
+  "include": [
+    "src/**/*",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "__tests__"
+  ]
 }

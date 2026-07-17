@@ -1,0 +1,169 @@
+### Variables
+@host = http://localhost:8000
+@email = sarveshmcasoft@gmail.com
+@password = S3cret-Passw0rd!
+@interviewId = 00000000-0000-0000-0000-000000000001
+@questionId = 00000000-0000-0000-0000-000000000002
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Health
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Liveness probe
+GET {{host}}/api/v1/health
+
+### Readiness probe (pings Mongo)
+GET {{host}}/api/v1/ready
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Auth
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Register a new user  → 201
+# @name register
+POST {{host}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "full_name": "Ada Lovelace",
+  "target_role": "Senior Backend Engineer",
+  "experience_years": 6
+}
+
+### Login  → capture access token for the requests below
+# @name login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### OAuth login (Google id_token or LinkedIn access token)
+POST {{host}}/api/v1/auth/oauth
+Content-Type: application/json
+
+{
+  "provider": "google",
+  "token": "eyJhbGciOiJSUzI1NiIs...google-id-token-placeholder..."
+}
+
+### Refresh the access token
+POST {{host}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "{{login.response.body.refresh_token}}"
+}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Resume  (multipart upload — protected)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Upload a resume (PDF / DOCX / TXT) for AI analysis → 201
+# Replace the path below with a real file on disk, e.g. ./assets/sample-resume.pdf
+POST {{host}}/api/v1/resume/upload
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: multipart/form-data; boundary=----ResumeBoundary
+
+------ResumeBoundary
+Content-Disposition: form-data; name="file"; filename="sample-resume.pdf"
+Content-Type: application/pdf
+
+< ./assets/sample-resume.pdf
+------ResumeBoundary--
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Interview  (protected)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Start an interview  → 201, returns the first question
+# @name startInterview
+POST {{host}}/api/v1/interview/start
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: application/json
+
+{
+  "type": "technical",
+  "technology": "python",
+  "total_questions": 10
+}
+
+### Submit an answer to the current question  → evaluation + next question
+POST {{host}}/api/v1/interview/answer
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: application/json
+
+{
+  "question_id": "{{startInterview.response.body.id}}",
+  "text": "A Python decorator is a callable that takes a function and returns a replacement function, typically using @syntax to apply it. Closures capture the enclosing scope...",
+  "code": null,
+  "language": null,
+  "duration_seconds": 47
+}
+
+### Submit a coding answer (with code + language)
+POST {{host}}/api/v1/interview/answer
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: application/json
+
+{
+  "question_id": "{{questionId}}",
+  "text": "Reverse a linked list iteratively by flipping each node's next pointer.",
+  "code": "def reverse(head):\n    prev = None\n    while head:\n        nxt = head.next\n        head.next = prev\n        prev, head = head, nxt\n    return prev",
+  "language": "python",
+  "duration_seconds": 312
+}
+
+### Complete an interview  → summary + overall score
+POST {{host}}/api/v1/interview/{{interviewId}}/complete
+Authorization: Bearer {{login.response.body.access_token}}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Career  (protected)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Career coach — ask a career question
+POST {{host}}/api/v1/career/coach
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: application/json
+
+{
+  "question": "How do I transition from IC to staff engineer without management experience?",
+  "goal_role": "Staff Backend Engineer"
+}
+
+### Build a learning roadmap for a target role
+POST {{host}}/api/v1/career/roadmap
+Authorization: Bearer {{login.response.body.access_token}}
+Content-Type: application/json
+
+{
+  "goal_role": "Senior Backend Engineer",
+  "gaps": ["system design", "kafka", "kubernetes"]
+}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+# Dashboard & analytics  (protected)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### Dashboard overview
+GET {{host}}/api/v1/dashboard
+Authorization: Bearer {{login.response.body.access_token}}
+
+### Analytics (same shape as dashboard)
+GET {{host}}/api/v1/analytics
+Authorization: Bearer {{login.response.body.access_token}}
+
+### Interview history (paginated)
+GET {{host}}/api/v1/interviews?skip=0&limit=20
+Authorization: Bearer {{login.response.body.access_token}}

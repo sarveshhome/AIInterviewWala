@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limiter
+from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
@@ -26,7 +26,6 @@ async def lifespan(app: FastAPI):
     setup_logging()
     await MongoConnection.connect()
     await ensure_indexes()
-    setup_tracing(app)
     yield
     await MongoConnection.disconnect()
 
@@ -41,8 +40,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.state.limiter = _rate_limiter.Limiter(key_func=get_remote_address,
-                                               default_limit=[settings.rate_limit_default] if settings.rate_limit_enabled else None)
+    app.state.limiter = Limiter(key_func=get_remote_address,
+                                               default_limits=[settings.rate_limit_default] if settings.rate_limit_enabled else None)
     app.add_middleware(SlowAPIMiddleware)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(
@@ -52,6 +51,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # OTel instrumentation adds middleware, so it must run at app-construction
+    # time (before the app starts) — calling it inside `lifespan` raises
+    # "Cannot add middleware after an application has started".
+    setup_tracing(app)
 
     for router in routers:
         app.include_router(router, prefix="/api/v1")

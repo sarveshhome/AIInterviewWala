@@ -43,6 +43,11 @@ async def ensure_indexes() -> None:
     for collection, specs in INDEXES.items():
         col = db[collection]
         for spec in specs:
-            key = spec.pop("key")
-            await col.create_index([key] if isinstance(key, tuple) and len(key) == 2 and not isinstance(key[0], tuple) else key, **spec)
+            # `key` is a flat tuple of alternating (field, direction) values,
+            # e.g. ("email", 1) or ("provider", 1, "provider_subject", 1).
+            # pymongo expects a list of (field, direction) pairs.
+            key = spec["key"]
+            pairs = list(zip(key[::2], key[1::2]))
+            opts = {k: v for k, v in spec.items() if k != "key"}
+            await col.create_index(pairs, **opts)
     logger.info("MongoDB indexes ensured")

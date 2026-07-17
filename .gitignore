@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Node
+node_modules/
+.expo/
+.gradle/
+
+# Env / secrets
+.env
+*.local
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
