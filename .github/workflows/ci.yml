@@ -1,0 +1,82 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Lint (ruff-style checks via py_compile)
+        run: python -m compileall -q application domain infrastructure presentation config tests
+      - name: Run unit tests
+        run: pytest tests/unit -v
+      - name: Run integration tests
+        run: pytest tests/integration -v
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: backend/.coverage
+
+  mobile-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Typecheck
+        run: yarn tsc --noEmit
+      - name: Test
+        run: yarn test --coverage
+
+  docker-build:
+    needs: backend-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          tags: ghcr.io/${{ github.repository_owner }}/aic-api:latest
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: [backend-test, docker-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply Kubernetes manifests
+        run: |
+          echo "kubectl apply -f infra/kubernetes/ --namespace ai-interview-coach"
+          # kubectl apply -f infra/kubernetes/ --namespace ai-interview-coach
+      - name: Rollout
+        run: echo "kubectl rollout status deployment/aic-api -n ai-interview-coach"
