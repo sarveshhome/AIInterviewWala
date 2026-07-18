@@ -10,7 +10,13 @@ logger = logging.getLogger(__name__)
 INDEXES = {
     "users": [
         {"key": ("email", 1), "unique": True},
-        {"key": ("provider", 1, "provider_subject", 1), "unique": True, "sparse": True},
+        # Dedupe OAuth subjects only. Email/password users have provider_subject
+        # = null; a plain (provider, provider_subject) unique index would collide
+        # for every email user. Use a partial index so only docs where
+        # provider_subject exists are indexed (sparse alone is not enough — it
+        # skips missing fields, not null ones).
+        {"key": ("provider", 1, "provider_subject", 1), "unique": True,
+         "partialFilterExpression": {"provider_subject": {"$type": "string"}}},
     ],
     "interviews": [
         {"key": ("user_id", 1, "created_at", -1)},

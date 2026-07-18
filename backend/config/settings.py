@@ -42,7 +42,7 @@ class Settings(BaseSettings):
 
     # Cohere
     cohere_api_key: str = ""
-    cohere_model: str = "command-r-plus"
+    cohere_model: str = "command-r-plus-08-2024"
     cohere_embed_model: str = "embed-english-v3.0"
 
     # OAuth

@@ -14,8 +14,28 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Diagnostic: log every outgoing request so you can confirm the app is
+  // actually hitting the backend (and which host). Shows in Metro console.
+  const fullUrl = (config.baseURL ?? '') + (config.url ?? '');
+  console.log(`[api] ${(config.method ?? 'GET').toUpperCase()} ${fullUrl}`);
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`[api] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
+  (error: AxiosError) => {
+    const cfg = error.config as InternalAxiosRequestConfig | undefined;
+    const fullUrl = (cfg?.baseURL ?? '') + (cfg?.url ?? '');
+    console.log(
+      `[api] ERROR ${error.code ?? 'NO_CODE'} ${cfg?.method?.toUpperCase() ?? '?'} ${fullUrl}`,
+      error.message ?? '',
+    );
+    return Promise.reject(error);
+  },
+);
 
 let refreshing = false;
 

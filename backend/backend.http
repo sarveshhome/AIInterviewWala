@@ -1,9 +1,9 @@
 ### Variables
 @host = http://localhost:8000
-@email = sarveshmcasoft@gmail.com
+@email = prashant.singh@gmail.com
 @password = S3cret-Passw0rd!
-@interviewId = 00000000-0000-0000-0000-000000000001
-@questionId = 00000000-0000-0000-0000-000000000002
+@interviewId = 00000000-0000-0000-0000-000000000003
+@questionId = 00000000-0000-0000-0000-000000000005
 
 ###
 # ─────────────────────────────────────────────────────────────────────────────
@@ -29,9 +29,9 @@ Content-Type: application/json
 {
   "email": "{{email}}",
   "password": "{{password}}",
-  "full_name": "Ada Lovelace",
+  "full_name": "Prashant Singh",
   "target_role": "Senior Backend Engineer",
-  "experience_years": 6
+  "experience_years": 7
 }
 
 ### Login  → capture access token for the requests below
