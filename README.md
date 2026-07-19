@@ -111,6 +111,12 @@ TLS ingress. Full checklist in `docs/ARCHITECTURE.md`.
 
 ---
 
+
+https://github.com/user-attachments/assets/e9224a3b-f1d3-4bf0-8c17-0a7b89a83dce
+
+
+---
+
 ## License
 
 MIT — example project. Replace placeholder secrets before any deployment.
