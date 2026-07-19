@@ -121,3 +121,4 @@ class Analytics(BaseEntity):
     strong_areas: list[str] = Field(default_factory=list)
     tech_performance: dict[str, float] = Field(default_factory=dict)  # {tech: avg_score}
     history: list[dict] = Field(default_factory=list)  # last N interview summaries
+    progress: list[dict] = Field(default_factory=list)  # [{date, score, label}] score-over-time

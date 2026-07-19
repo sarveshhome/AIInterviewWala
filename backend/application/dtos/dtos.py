@@ -117,6 +117,13 @@ class LearningRoadmapRequest(BaseModel):
 
 
 # ---------- Analytics ----------
+class ProgressPoint(BaseModel):
+    """A single point on the score-over-time progress graph."""
+    date: str  # ISO-8601 (completed_at / started_at / created_at)
+    score: float
+    label: str  # e.g. "#1 technical"
+
+
 class AnalyticsResponse(BaseModel):
     total_interviews: int = 0
     average_score: Optional[float] = None
@@ -124,6 +131,7 @@ class AnalyticsResponse(BaseModel):
     strong_areas: list[str] = []
     tech_performance: dict[str, float] = {}
     history: list[dict] = []
+    progress: list[ProgressPoint] = []  # score-over-time series for the progress graph
 
 
 # ---------- Common ----------

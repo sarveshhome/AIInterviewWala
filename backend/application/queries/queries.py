@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from application.dtos.dtos import AnalyticsResponse
+from application.dtos.dtos import AnalyticsResponse, ProgressPoint
 from application.unit_of_work import IUnitOfWork
 from domain.entities.entities import Analytics
 from domain.exceptions import EntityNotFound
@@ -16,12 +16,16 @@ class GetDashboardQuery:
     async def execute(self, user_id: UUID) -> AnalyticsResponse:
         async with self._uow as uow:
             analytics = await uow.analytics.get_by_user(user_id)
-            if analytics:
+            # Use the precomputed doc only when it already carries a progress
+            # series; otherwise fall back to live aggregation so legacy docs
+            # (and the Celery-less dev path) still render the progress graph.
+            if analytics and analytics.progress:
                 return AnalyticsResponse(
                     total_interviews=analytics.total_interviews,
                     average_score=analytics.average_score.value if analytics.average_score else None,
                     weak_areas=analytics.weak_areas, strong_areas=analytics.strong_areas,
                     tech_performance=analytics.tech_performance, history=analytics.history,
+                    progress=[ProgressPoint(**p) for p in analytics.progress],
                 )
             # No precomputed analytics doc (the Celery aggregator isn't running in
             # dev) — aggregate live from interviews + answers + evaluations so the
@@ -33,6 +37,7 @@ class GetDashboardQuery:
         tech_scores: dict[str, list[float]] = {}
         all_scores: list[float] = []
         history: list[dict] = []
+        progress: list[ProgressPoint] = []
         for iv in interviews[:50]:
             answers = await uow.answers.list_by_interview(iv.id)
             iv_scores: list[float] = []
@@ -46,8 +51,18 @@ class GetDashboardQuery:
                     tech_scores.setdefault(key, []).append(s)
             overall = (iv.overall_score.value if iv.overall_score
                        else (round(sum(iv_scores) / len(iv_scores), 2) if iv_scores else None))
+            ts = iv.completed_at or iv.started_at or iv.created_at
             history.append({"id": str(iv.id), "type": iv.type.value, "technology": iv.technology,
-                            "status": iv.status.value, "score": overall})
+                            "status": iv.status.value, "score": overall,
+                            "completed_at": ts.isoformat() if ts else None})
+            if overall is not None:
+                progress.append(ProgressPoint(
+                    date=ts.isoformat() if ts else "",
+                    score=float(overall),
+                    label=f"#{len(progress) + 1} {iv.type.value}",
+                ))
+        # Plot progress chronologically (interviews list_by_user may not be sorted).
+        progress.sort(key=lambda p: p.date or "")
         average_score = round(sum(all_scores) / len(all_scores), 2) if all_scores else None
         tech_performance = {k: round(sum(v) / len(v), 2) for k, v in tech_scores.items()}
         strong_areas = [k for k, v in tech_performance.items() if v >= 70]
@@ -59,6 +74,7 @@ class GetDashboardQuery:
             strong_areas=strong_areas,
             tech_performance=tech_performance,
             history=history[:20],
+            progress=progress,
         )
 
 

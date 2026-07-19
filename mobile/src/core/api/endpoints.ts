@@ -1,4 +1,5 @@
 import { api } from './client';
+import type { AnalyticsResponse, InterviewHistoryItem } from '@features/analytics/models/analytics';
 
 /** Centralized API endpoint definitions — one place to find every call. */
 export const authApi = {
@@ -39,10 +40,6 @@ export const careerApi = {
 };
 
 export const dashboardApi = {
-  get: () => api.get<{
-    total_interviews: number; average_score: number | null;
-    weak_areas: string[]; strong_areas: string[]; tech_performance: Record<string, number>;
-    history: { id: string; type: string; technology?: string | null; score?: number | null }[];
-  }>('/dashboard'),
-  history: (skip = 0, limit = 20) => api.get('/interviews', { skip, limit }),
+  get: () => api.get<AnalyticsResponse>('/dashboard'),
+  history: (skip = 0, limit = 20) => api.get<InterviewHistoryItem[]>('/interviews', { skip, limit }),
 };
