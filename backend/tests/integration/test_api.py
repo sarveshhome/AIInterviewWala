@@ -19,7 +19,7 @@ def client(monkeypatch):
             self._uow = FakeUoW()
         def auth(self): return self._auth
         def issuer(self): return FakeTokenIssuer(self._auth)
-        def uow(self): return FakeUoW()
+        def uow(self): return self._uow
         def interview_ai(self): return FakeInterviewAI()
         def career_ai(self): return FakeCareerAI()
         def parser(self): return ResumeParser()
@@ -61,12 +61,45 @@ def client(monkeypatch):
             from application.queries.queries import GetInterviewHistoryQuery
             return GetInterviewHistoryQuery(self.uow())
 
+    import importlib
     import infrastructure.di.container as cont_mod
-    monkeypatch.setattr(cont_mod, "get_container", lambda: FakeContainer())
-    monkeypatch.setattr(auth_dep, "get_container", lambda: FakeContainer())
+    # presentation/routers/__init__.py re-binds submodule names to the router
+    # objects, so `import presentation.routers.auth_router as ...` yields the
+    # APIRouter, not the module. Resolve the real module objects instead.
+    auth_r = importlib.import_module("presentation.routers.auth_router")
+    career_r = importlib.import_module("presentation.routers.career_router")
+    dash_r = importlib.import_module("presentation.routers.dashboard_router")
+    int_r = importlib.import_module("presentation.routers.interview_router")
+    resume_r = importlib.import_module("presentation.routers.resume_router")
+    # Routers import get_container by value, so patch the symbol in every
+    # module that holds a reference — patching only the container module
+    # leaves the routers bound to the real (Mongo-backed) container. A single
+    # shared instance keeps the UoW store alive across requests in one test
+    # (e.g. register then login).
+    fake_container = FakeContainer()
+    for mod in (cont_mod, auth_dep, auth_r, career_r, dash_r, int_r, resume_r):
+        monkeypatch.setattr(mod, "get_container", lambda: fake_container)
+
+    # The app lifespan connects to Mongo and ensures indexes; stub those out so
+    # the test runs without a live MongoDB (CI has none). The faked container
+    # above already keeps request handling off Mongo. Also stub setup_tracing
+    # (called in create_app) so the OTLP exporter doesn't spend ~60s retrying
+    # localhost:4317 on process exit.
+    import presentation.app as app_mod
+    import infrastructure.database.mongodb.connection as mongo_mod
+
+    async def _noop(*a, **k):
+        return None
+
+    def _noop_sync(*a, **k):
+        return None
+
+    monkeypatch.setattr(app_mod, "ensure_indexes", _noop)
+    monkeypatch.setattr(app_mod, "setup_tracing", _noop_sync)
+    monkeypatch.setattr(mongo_mod.MongoConnection, "connect", _noop)
+    monkeypatch.setattr(mongo_mod.MongoConnection, "disconnect", _noop)
 
     app = create_app()
-    # Bypass lifespan (no Mongo in CI)
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
 
