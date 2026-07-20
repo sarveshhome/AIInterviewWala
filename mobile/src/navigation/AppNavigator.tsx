@@ -11,8 +11,9 @@ import { RegisterScreen } from '@features/auth/screens/RegisterScreen';
 import { InterviewSetupScreen } from '@features/interview/screens/InterviewSetupScreen';
 import { InterviewSessionScreen } from '@features/interview/screens/InterviewSessionScreen';
 import { ResumeUploadScreen } from '@features/resume/screens/ResumeUploadScreen';
+import { CareerScreen } from '@features/career/screens/CareerScreen';
 import { DashboardScreen } from '@features/analytics/screens/DashboardScreen';
-import { DashboardTabIcon, InterviewTabIcon, ResumeTabIcon, TAB_BRAND, TAB_MUTED } from '@shared/components/tabIcons';
+import { DashboardTabIcon, InterviewTabIcon, ResumeTabIcon, CareerTabIcon, TAB_BRAND, TAB_MUTED } from '@shared/components/tabIcons';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -39,6 +40,11 @@ const HomeTabs = () => (
       name="Resume"
       component={ResumeUploadScreen}
       options={{ title: 'Resume', tabBarIcon: ({ focused }) => <ResumeTabIcon focused={focused} /> }}
+    />
+    <Tab.Screen
+      name="Career"
+      component={CareerScreen}
+      options={{ title: 'Career', tabBarIcon: ({ focused }) => <CareerTabIcon focused={focused} /> }}
     />
   </Tab.Navigator>
 );

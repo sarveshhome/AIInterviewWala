@@ -1,5 +1,6 @@
 import { api } from './client';
 import type { AnalyticsResponse, InterviewHistoryItem } from '@features/analytics/models/analytics';
+import type { CareerCoachResponse, LearningRoadmapResponse } from '@features/career/models/career';
 
 /** Centralized API endpoint definitions — one place to find every call. */
 export const authApi = {
@@ -35,8 +36,8 @@ export const interviewApi = {
 };
 
 export const careerApi = {
-  coach: (body: { question: string; goal_role?: string }) => api.post('/career/coach', body),
-  roadmap: (body: { goal_role: string; gaps: string[] }) => api.post('/career/roadmap', body),
+  coach: (body: { question: string; goal_role?: string }) => api.post<CareerCoachResponse>('/career/coach', body),
+  roadmap: (body: { goal_role: string; gaps: string[] }) => api.post<LearningRoadmapResponse>('/career/roadmap', body),
 };
 
 export const dashboardApi = {
