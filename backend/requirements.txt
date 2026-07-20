@@ -13,6 +13,11 @@ cohere==5.9.0
 httpx==0.27.0
 python-dotenv==1.0.1
 openai==1.37.0  # optional fallback
+# opentelemetry-instrumentation 0.48b imports pkg_resources, which was removed
+# in setuptools 81+ and is no longer bundled in Python 3.12 venvs. Pin a
+# setuptools that still ships pkg_resources so OTel instrumentation imports
+# resolve in CI and at app startup.
+setuptools<81
 opentelemetry-api==1.27.0
 opentelemetry-sdk==1.27.0
 opentelemetry-instrumentation-fastapi==0.48b0
