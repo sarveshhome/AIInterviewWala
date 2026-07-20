@@ -112,6 +112,11 @@ TLS ingress. Full checklist in `docs/ARCHITECTURE.md`.
 ---
 
 
+
+https://github.com/user-attachments/assets/07a6f591-0b54-4f98-a62a-66c4f7e11d04
+
+
+
 https://github.com/user-attachments/assets/e9224a3b-f1d3-4bf0-8c17-0a7b89a83dce
 
 
