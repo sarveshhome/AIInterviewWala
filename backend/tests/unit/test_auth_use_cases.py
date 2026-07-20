@@ -35,7 +35,7 @@ async def test_login_wrong_password_raises(uow, auth, issuer):
     await RegisterUseCase(uow, auth, issuer).execute(
         RegisterRequest(email="a@b.com", password="secret123", full_name="A B"))
     with pytest.raises(InvalidCredentials):
-        await LoginUseCase(uow, auth, issuer).execute(LoginRequest(email="a@b.com", password="wrong"))
+        await LoginUseCase(uow, auth, issuer).execute(LoginRequest(email="a@b.com", password="wrongpass"))
 
 
 @pytest.mark.asyncio

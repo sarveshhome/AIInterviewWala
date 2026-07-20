@@ -8,5 +8,8 @@ module.exports = {
     '^@navigation$': '<rootDir>/src/navigation',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  transformIgnorePatterns: ['node_modules/(?!(@react-native|react-native|@reduxjs|@tanstack)/)'],
+  // immer v11 ships an ESM build (immer.legacy-esm.js) selected by the
+  // `react-native` exports condition; it must be transpiled to CJS or Jest
+  // fails with "Unexpected token 'export'".
+  transformIgnorePatterns: ['node_modules/(?!(@react-native|react-native|@reduxjs|@tanstack|immer)/)'],
 };

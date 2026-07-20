@@ -43,8 +43,22 @@ class InMemRepo:
     async def list(self, filters=None, skip=0, limit=50):
         items = list(self.store.values())
         if filters and self.fk_field:
-            items = [i for i in items if getattr(i, self.fk_field, None) and str(getattr(i, self.fk_field)) == filters.get(self.fk_field)]
+            items = [i for i in items if getattr(i, self.fk_field, None) and str(getattr(i, self.fk_field)) == str(filters.get(self.fk_field))]
         return items
+    async def list_by_user(self, user_id, skip=0, limit=50):
+        return [i for i in self.store.values() if str(getattr(i, "user_id", "")) == str(user_id)]
+    async def list_by_interview(self, interview_id):
+        return [i for i in self.store.values() if str(getattr(i, "interview_id", "")) == str(interview_id)]
+    async def get_by_order(self, interview_id, order):
+        return next((i for i in self.store.values()
+                    if str(getattr(i, "interview_id", "")) == str(interview_id) and getattr(i, "order", None) == order), None)
+    async def get_by_answer(self, answer_id):
+        return next((i for i in self.store.values() if str(getattr(i, "answer_id", "")) == str(answer_id)), None)
+    async def get_latest_by_user(self, user_id):
+        items = await self.list_by_user(user_id)
+        return items[-1] if items else None
+    async def get_by_user(self, user_id):
+        return next((i for i in self.store.values() if str(getattr(i, "user_id", "")) == str(user_id)), None)
     async def add(self, e): self.store[str(e.id)] = e; return e
     async def update(self, e): self.store[str(e.id)] = e; return e
     async def delete(self, id): return self.store.pop(str(id), None) is not None
@@ -53,13 +67,13 @@ class InMemRepo:
 class FakeUoW(IUnitOfWork):
     def __init__(self):
         self.users = InMemUserRepo()
-        self.interviews = InMemRepo()
-        self.questions = InMemRepo()
-        self.answers = InMemRepo()
-        self.evaluations = InMemRepo()
-        self.resumes = InMemRepo()
-        self.roadmaps = InMemRepo()
-        self.analytics = InMemRepo()
+        self.interviews = InMemRepo(fk_field="user_id")
+        self.questions = InMemRepo(fk_field="interview_id")
+        self.answers = InMemRepo(fk_field="interview_id")
+        self.evaluations = InMemRepo(fk_field="answer_id")
+        self.resumes = InMemRepo(fk_field="user_id")
+        self.roadmaps = InMemRepo(fk_field="user_id")
+        self.analytics = InMemRepo(fk_field="user_id")
         self._committed = False
     async def begin(self): self._committed = False
     async def commit(self): self._committed = True
