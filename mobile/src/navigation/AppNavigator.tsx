@@ -12,15 +12,34 @@ import { InterviewSetupScreen } from '@features/interview/screens/InterviewSetup
 import { InterviewSessionScreen } from '@features/interview/screens/InterviewSessionScreen';
 import { ResumeUploadScreen } from '@features/resume/screens/ResumeUploadScreen';
 import { DashboardScreen } from '@features/analytics/screens/DashboardScreen';
+import { DashboardTabIcon, InterviewTabIcon, ResumeTabIcon, TAB_BRAND, TAB_MUTED } from '@shared/components/tabIcons';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 const HomeTabs = () => (
-  <Tab.Navigator screenOptions={{ headerShown: true }}>
-    <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Dashboard' }} />
-    <Tab.Screen name="InterviewSetup" component={InterviewSetupScreen} options={{ title: 'Interview' }} />
-    <Tab.Screen name="Resume" component={ResumeUploadScreen} options={{ title: 'Resume' }} />
+  <Tab.Navigator
+    screenOptions={{
+      headerShown: true,
+      tabBarActiveTintColor: TAB_BRAND,
+      tabBarInactiveTintColor: TAB_MUTED,
+    }}
+  >
+    <Tab.Screen
+      name="Dashboard"
+      component={DashboardScreen}
+      options={{ title: 'Dashboard', tabBarIcon: ({ focused }) => <DashboardTabIcon focused={focused} /> }}
+    />
+    <Tab.Screen
+      name="InterviewSetup"
+      component={InterviewSetupScreen}
+      options={{ title: 'Interview', tabBarIcon: ({ focused }) => <InterviewTabIcon focused={focused} /> }}
+    />
+    <Tab.Screen
+      name="Resume"
+      component={ResumeUploadScreen}
+      options={{ title: 'Resume', tabBarIcon: ({ focused }) => <ResumeTabIcon focused={focused} /> }}
+    />
   </Tab.Navigator>
 );
 
